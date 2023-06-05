@@ -1,3 +1,10 @@
+/*
+A Dictionary stores keywords and its meanings. Provide facility for adding new keywords,
+deleting keywords, updating values of any entry. Provide facility to display whole data sorted
+in ascending/ Descending order. Also find how many maximum comparisons may require for finding
+any keyword. Use Binary Search Tree for implementation
+*/
+
 #include <iostream>
 using namespace std;
 
@@ -272,6 +279,7 @@ int main()
 
         default:
             cout << "Invalid choice. Please try again." << endl;
+            exit(0);
         }
 
         cout << endl;
