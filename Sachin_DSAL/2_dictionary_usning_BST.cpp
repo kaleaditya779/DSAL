@@ -154,7 +154,7 @@ public:
 
     void deleteKeyword(string keyword)
     {
-        int comparisons = 0;
+        int comparisons = 1;
         Node *node = searchNode(root, keyword, comparisons);
         if (node != nullptr)
         {

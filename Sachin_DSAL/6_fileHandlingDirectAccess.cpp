@@ -1,144 +1,127 @@
+//Company maintains employee information such as employee ID, name, designation and salary. Allow the user to add, delete information of an employee. Display information of a particular employee. If an employee does not exist, an appropriate message is displayed. If the employee exists, then the system displays the employee details. Use a direct access file to maintain the data.
+
+//use following as options to each other
+//reinterpret_cast<char*>(&emp)
+//(char*)&emp
+
+//create file employees.dat if not automatically created
+
 #include <iostream>
 #include <fstream>
-#include <cstring>
+#include <string>
 
 using namespace std;
 
-struct Employee
-{
-    int employeeID;
-    char name[50];
-    char designation[50];
+const int EMPLOYEE_SIZE = 60;  // Size of each employee record in bytes
+
+// Employee structure represents the structure of an employee record
+struct Employee {
+    int emp_id;
+    char name[20];
+    char designation[20];
     double salary;
 };
 
-void addEmployee()
-{
-    ofstream file("employee.dat", ios::binary | ios::app);
-
-    Employee employee;
+void addEmployee(fstream& file) {
+    Employee emp;
 
     cout << "Enter Employee ID: ";
-    cin >> employee.employeeID;
-
-    cout << "Enter Name: ";
+    cin >> emp.emp_id;
     cin.ignore();
-    cin.getline(employee.name, 50);
 
-    cout << "Enter Designation: ";
-    cin.getline(employee.designation, 50);
+    cout << "Enter Employee Name: ";
+    cin.getline(emp.name, 20);
 
-    cout << "Enter Salary: ";
-    cin >> employee.salary;
+    cout << "Enter Employee Designation: ";
+    cin.getline(emp.designation, 20);
 
-    file.write(reinterpret_cast<char *>(&employee), sizeof(Employee));
+    cout << "Enter Employee Salary: ";
+    cin >> emp.salary;
 
-    file.close();
+    file.seekp((emp.emp_id - 1) * EMPLOYEE_SIZE, ios::beg);
+    file.write((char*)&emp, sizeof(emp));
 
-    cout << "Employee information added successfully!" << endl;
+    cout << "Employee added successfully!" << endl;
 }
 
-void deleteEmployee(int employeeID)
-{
-    ifstream file("employee.dat", ios::binary);
-    ofstream temp("temp.dat", ios::binary);
+void deleteEmployee(fstream& file) {
+    int emp_id;
 
-    Employee employee;
-    bool found = false;
+    cout << "Enter Employee ID to delete: ";
+    cin >> emp_id;
 
-    while (file.read(reinterpret_cast<char *>(&employee), sizeof(Employee)))
-    {
-        if (employee.employeeID == employeeID)
-        {
-            found = true;
-            continue;
-        }
+    file.seekp((emp_id - 1) * EMPLOYEE_SIZE, ios::beg);
 
-        temp.write(reinterpret_cast<char *>(&employee), sizeof(Employee));
-    }
+    Employee emp;
+    file.write((char*)&emp, sizeof(emp));
 
-    file.close();
-    temp.close();
+    cout << "Employee deleted successfully!" << endl;
+}
 
-    if (found)
-    {
-        remove("employee.dat");
-        rename("temp.dat", "employee.dat");
-        cout << "Employee information deleted successfully!" << endl;
-    }
-    else
-    {
-        remove("temp.dat");
+void displayEmployee(fstream& file) {
+    int emp_id;
+
+    cout << "Enter Employee ID to display: ";
+    cin >> emp_id;
+
+    file.seekg((emp_id - 1) * EMPLOYEE_SIZE, ios::beg);
+
+    Employee emp;
+    file.read((char*)&emp, sizeof(emp));
+
+    if (emp.emp_id == 0) {
         cout << "Employee not found!" << endl;
+    } else {
+        cout << "Employee ID: " << emp.emp_id << endl;
+        cout << "Name: " << emp.name << endl;
+        cout << "Designation: " << emp.designation << endl;
+        cout << "Salary: " << emp.salary << endl;
     }
 }
 
-void displayEmployee(int employeeID)
-{
-    ifstream file("employee.dat", ios::binary);
+int main() {
+    fstream file;
+    file.open("employees.txt", ios::out | ios::in | ios::binary);
 
-    Employee employee;
-    bool found = false;
-
-    while (file.read(reinterpret_cast<char *>(&employee), sizeof(Employee)))
-    {
-        if (employee.employeeID == employeeID)
-        {
-            found = true;
-            break;
-        }
+    if (!file) {
+        cout << "Failed to open the file!" << endl;
+        return 1;
     }
 
-    file.close();
-
-    if (found)
-    {
-        cout << "Employee ID: " << employee.employeeID << endl;
-        cout << "Name: " << employee.name << endl;
-        cout << "Designation: " << employee.designation << endl;
-        cout << "Salary: " << employee.salary << endl;
-    }
-    else
-    {
-        cout << "Employee not found!" << endl;
-    }
-}
-
-int main()
-{
     int choice;
-    int employeeID;
 
-    while (true)
-    {
-        cout << "1. Add Employee\n";
-        cout << "2. Delete Employee\n";
-        cout << "3. Display Employee\n";
-        cout << "4. Exit\n";
+    do {
+        cout << "------ Employee Management System ------" << endl;
+        cout << "1. Add Employee" << endl;
+        cout << "2. Delete Employee" << endl;
+        cout << "3. Display Employee" << endl;
+        cout << "4. Exit" << endl;
         cout << "Enter your choice: ";
         cin >> choice;
 
-        switch (choice)
-        {
-        case 1:
-            addEmployee();
-            break;
-        case 2:
-            cout << "Enter Employee ID to delete: ";
-            cin >> employeeID;
-            deleteEmployee(employeeID);
-            break;
-        case 3:
-            cout << "Enter Employee ID to display: ";
-            cin >> employeeID;
-            displayEmployee(employeeID);
-            break;
-        case 4:
-            exit(0);
-        default:
-            cout << "Invalid choice! Please try again." << endl;
+        switch (choice) {
+            case 1:
+                addEmployee(file);
+                break;
+            case 2:
+                deleteEmployee(file);
+                break;
+            case 3:
+                displayEmployee(file);
+                break;
+            case 4:
+                cout << "Exiting the program..." << endl;
+                break;
+            default:
+                cout << "Invalid choice! Please try again." << endl;
+                break;
         }
-    }
+
+        cout << endl;
+
+    } while (choice != 4);
+
+    file.close();
 
     return 0;
 }
